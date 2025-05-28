@@ -5,7 +5,7 @@ local redis = require "resty.redis"
 local UserServiceAuthHandler = {}
 
 UserServiceAuthHandler.PRIORITY = 1000  -- Execute before other auth plugins
-UserServiceAuthHandler.VERSION = "1.0.0"
+UserServiceAuthHandler.VERSION = "1.1.0"
 
 local function get_redis_connection(conf)
   local red = redis:new()
@@ -62,16 +62,27 @@ local function get_cached_auth_result(conf, cache_key)
   return auth_data
 end
 
+local function join_url(base, path)
+  if base:sub(-1) == "/" and path:sub(1, 1) == "/" then
+    return base .. path:sub(2)
+  elseif base:sub(-1) ~= "/" and path:sub(1, 1) ~= "/" then
+    return base .. "/" .. path
+  else
+    return base .. path
+  end
+end
+
 local function verify_token_with_user_service(conf, token)
   local httpc = http.new()
   httpc:set_timeout(conf.timeout)
-  
-  local res, err = httpc:request_uri(conf.user_service_url .. "/api/auth/verify-token/", {
+
+  local url = join_url(conf.user_service_url, conf.auth_endpoint)
+  local res, err = httpc:request_uri(url, {
     method = "GET",
     headers = {
       ["Authorization"] = "Bearer " .. token,
       ["Content-Type"] = "application/json",
-      ["User-Agent"] = "Kong-Auth-Plugin/1.0.0"
+      ["User-Agent"] = "Kong-Auth-Plugin/1.1.0"
     }
   })
   
@@ -99,6 +110,7 @@ local function verify_token_with_user_service(conf, token)
 end
 
 local function should_bypass_auth(conf, path)
+  -- Check configured bypass paths
   for _, bypass_path in ipairs(conf.bypass_paths) do
     if string.match(path, bypass_path) then
       return true
@@ -107,12 +119,55 @@ local function should_bypass_auth(conf, path)
   return false
 end
 
+local function set_anonymous_headers()
+  -- Set anonymous user headers
+  kong.service.request.set_header("X-User-ID", "")
+  kong.service.request.set_header("X-Username", "")
+  kong.service.request.set_header("X-User-Role", "")
+  kong.service.request.set_header("X-Organization-ID", "")
+  kong.service.request.set_header("X-Clearance-Level", "1")
+  kong.service.request.set_header("X-Emergency-Override", "false")
+  kong.service.request.set_header("X-Authenticated", "false")
+  kong.service.request.set_header("X-Auth-Source", "kong-middleware")
+end
+
+local function set_authenticated_headers(auth_data)
+  -- Set authenticated user headers với NULL handling
+  kong.service.request.set_header("X-User-ID", auth_data.user_id or "")
+  kong.service.request.set_header("X-Username", auth_data.username or "")
+  kong.service.request.set_header("X-User-Role", auth_data.role or "")
+  
+  -- Handle organization_id NULL properly
+  local org_id = ""
+  if auth_data.organization_id and auth_data.organization_id ~= ngx.null then
+    org_id = tostring(auth_data.organization_id)
+  end
+  kong.service.request.set_header("X-Organization-ID", org_id)
+  
+  -- Handle other nullable fields
+  local clearance_level = "1"
+  if auth_data.clearance_level and auth_data.clearance_level ~= ngx.null then
+    clearance_level = tostring(auth_data.clearance_level)
+  end
+  kong.service.request.set_header("X-Clearance-Level", clearance_level)
+  
+  local emergency_override = "false"
+  if auth_data.emergency_override and auth_data.emergency_override ~= ngx.null then
+    emergency_override = tostring(auth_data.emergency_override)
+  end
+  kong.service.request.set_header("X-Emergency-Override", emergency_override)
+  
+  kong.service.request.set_header("X-Authenticated", "true")
+  kong.service.request.set_header("X-Auth-Source", "kong-middleware")
+end
+
 function UserServiceAuthHandler:access(conf)
   local path = kong.request.get_path()
   
-  -- Check if this path should bypass authentication
+  -- Check if this path should completely bypass authentication
   if should_bypass_auth(conf, path) then
     kong.log.info("Bypassing authentication for path: ", path)
+    kong.service.request.set_header("X-Auth-Bypass", "true")
     return
   end
   
@@ -120,20 +175,22 @@ function UserServiceAuthHandler:access(conf)
   local headers = kong.request.get_headers()
   local authorization = headers["authorization"]
   
+  -- No authorization header = anonymous user
   if not authorization then
-    return kong.response.exit(401, {
-      error = "Authentication required",
-      message = "Authorization header is missing"
-    })
+    kong.log.info("No authorization header, proceeding as anonymous user")
+    set_anonymous_headers()
+    -- Remove any existing authorization header
+    kong.service.request.clear_header("Authorization")
+    return
   end
   
   -- Extract token from Authorization header
   local token = authorization:match("Bearer%s+(.+)")
   if not token then
-    return kong.response.exit(401, {
-      error = "Invalid authorization format",
-      message = "Authorization header must be 'Bearer <token>'"
-    })
+    kong.log.info("Invalid authorization format, proceeding as anonymous user")
+    set_anonymous_headers()
+    kong.service.request.clear_header("Authorization")
+    return
   end
   
   -- Create cache key
@@ -148,10 +205,11 @@ function UserServiceAuthHandler:access(conf)
     
     local verified_data, err = verify_token_with_user_service(conf, token)
     if not verified_data then
-      return kong.response.exit(401, {
-        error = "Authentication failed",
-        message = err
-      })
+      -- Token verification failed, proceed as anonymous
+      kong.log.info("Token verification failed: ", err, ". Proceeding as anonymous user")
+      set_anonymous_headers()
+      kong.service.request.clear_header("Authorization")
+      return
     end
     
     auth_data = verified_data
@@ -163,15 +221,8 @@ function UserServiceAuthHandler:access(conf)
     kong.log.info("Using cached authentication for user: ", auth_data.username)
   end
   
-  -- Add user information to request headers for downstream services
-  kong.service.request.set_header("X-User-ID", auth_data.user_id)
-  kong.service.request.set_header("X-Username", auth_data.username)
-  kong.service.request.set_header("X-User-Role", auth_data.role)
-  kong.service.request.set_header("X-Organization-ID", tostring(auth_data.organization_id or ""))
-  kong.service.request.set_header("X-Clearance-Level", tostring(auth_data.clearance_level or 1))
-  kong.service.request.set_header("X-Emergency-Override", tostring(auth_data.emergency_override or false))
-  kong.service.request.set_header("X-Authenticated", "true")
-  kong.service.request.set_header("X-Auth-Source", "kong-middleware")
+  -- Set authenticated user headers
+  set_authenticated_headers(auth_data)
   
   -- Remove original authorization header to prevent token leakage
   kong.service.request.clear_header("Authorization")

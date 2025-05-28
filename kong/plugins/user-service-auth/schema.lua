@@ -15,6 +15,11 @@ return {
                     required = true
                 }
             }, {
+                auth_endpoint = {
+                    type = "string",
+                    required = true,
+                }
+            }, {
                 cache_ttl = {
                     type = "number",
                     default = 300

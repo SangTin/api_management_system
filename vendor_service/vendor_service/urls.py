@@ -1,5 +1,5 @@
 """
-URL configuration for user_service project.
+URL configuration for vendor_service project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -16,12 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
 
 def health_check(request):
-    return JsonResponse({'status': 'healthy', 'service': 'user-service'})
+    return JsonResponse({'status': 'healthy', 'service': 'vendor-service'})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health_check'),
-    path('api/auth/', include('authentication.urls')),
+    path('api/vendors/', include('vendor.urls')),
+    path('api/configs/', include('api_config.urls')),
 ]
