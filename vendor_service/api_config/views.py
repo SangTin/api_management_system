@@ -8,6 +8,13 @@ from protocol_handlers import get_protocol_handler
 class APIConfigurationViewSet(viewsets.ModelViewSet):
     queryset = APIConfiguration.objects.all()
     serializer_class = APIConfigurationSerializer
+    
+    def get_queryset(self):
+        print("Fetching API configurations for user:", self.request.user.id)
+        print("User role:", getattr(self.request, 'user_role', 'unknown'))
+        if hasattr(self.request, 'user_role') and self.request.user_role == 'admin':
+            return self.queryset
+        return self.queryset.filter(created_by=self.request.user.id)
 
     @action(detail=True, methods=['post'])
     def test_connection(self, request, pk=None):

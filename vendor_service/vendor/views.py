@@ -9,9 +9,9 @@ class VendorViewSet(viewsets.ModelViewSet):
     serializer_class = VendorSerializer
 
     def get_queryset(self):
-        if hasattr(self.request, 'user_role') and self.request.user_role != 'admin':
-            return self.queryset.filter(created_by=self.request.user_id)
-        return self.queryset
+        if hasattr(self.request, 'user_role') and self.request.user_role == 'admin':
+            return self.queryset
+        return self.queryset.filter(created_by=self.request.user.id)
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):

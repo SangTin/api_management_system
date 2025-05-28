@@ -16,6 +16,32 @@ class User(AbstractUser):
         ('vendor_admin', 'Vendor Administrator')
     ])
     is_api_user = models.BooleanField(default=False)  # For service-to-service auth
-    api_key = models.CharField(max_length=100, blank=True, unique=True)
+    api_key = models.CharField(max_length=100, blank=True, unique=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+        
+    def clean(self):
+        super().clean()
+        # Convert empty string to None
+        if self.api_key == '':
+            self.api_key = None
+            
+        # Generate API key for API users if not provided
+        if self.is_api_user and not self.api_key:
+            self.generate_api_key()
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+    
+    def generate_api_key(self):
+        """Generate a new API key"""
+        self.api_key = f"ak_{secrets.token_urlsafe(32)}"
+        return self.api_key
+    
+    def regenerate_api_key(self):
+        """Regenerate API key and save"""
+        self.generate_api_key()
+        self.save()
+        return self.api_key
