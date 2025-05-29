@@ -158,8 +158,11 @@ services:
     container_name: api-management-user-service
     volumes:
       - ./user_service:/app
+      - ./shared:/app/shared
     env_file:
       - .env
+    environment:
+      - DB_NAME=user_service_db
     depends_on:
       redis:
         condition: service_healthy
@@ -180,6 +183,8 @@ services:
       - ./shared:/app/shared
     env_file:
       - .env
+    environment:
+      - DB_NAME=vendor_service_db
     depends_on:
       redis:
         condition: service_healthy

@@ -32,6 +32,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'shared',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,12 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework_simplejwt.token_blacklist',
-    'authentication',
-    'organization',
     'user',
+    'organization',
+    'authentication',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -149,6 +152,9 @@ REST_FRAMEWORK = {
     ],
 }
 
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
+
 EMAIL_VERIFICATION_ENABLED = os.getenv('EMAIL_VERIFICATION_ENABLED', 'False') == 'True'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -160,3 +166,6 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@example.com')
 
 API_GATEWAY_URL = os.getenv('API_GATEWAY_URL', 'http://localhost:8000/')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000/')
+
+CORS_ALLOW_ALL_ORIGINS = os.getenv('DEBUG', 'True') == 'True'

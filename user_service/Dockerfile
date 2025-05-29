@@ -11,10 +11,11 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY ./${SERVICE_NAME}/ .
+COPY ./${SERVICE_NAME}/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./${SERVICE_NAME}/entrypoint.sh .
+COPY ./${SERVICE_NAME}/ .
+
 RUN chmod +x entrypoint.sh
 
 CMD ["/bin/bash", "./entrypoint.sh"]

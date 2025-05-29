@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     UserRegistrationView, CustomTokenObtainPairView, google_auth,
     password_reset_request, password_reset_confirm, email_verify,
-    logout, verify_token, verify_api_key, public_endpoint
+    logout, verify_token, verify_api_key, resend_email_verification,
+    user_profile
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -26,4 +27,8 @@ urlpatterns = [
     
     # Email verification
     path('email-verify/', email_verify, name='email-verify'),
+    path('resend-verification/', resend_email_verification, name='resend-email-verification'),
+    
+    # User management
+    path('profile/', user_profile, name='user-profile'),
 ]

@@ -15,6 +15,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 import secrets
 import string
+from urllib.parse import urljoin
 
 from .serializers import (
     UserRegistrationSerializer, CustomTokenObtainPairSerializer,
@@ -33,13 +34,15 @@ class UserRegistrationView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        
+        # Print reason for validation failure if any
+        if not serializer.is_valid():
+            print("Validation errors:", serializer.errors)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         
         # Send email verification (optional)
         if getattr(settings, 'EMAIL_VERIFICATION_ENABLED', False):
-            user.is_active = False
-            user.save(update_fields=['is_active'])
             self.send_verification_email(user, request)
         
         # Generate tokens
@@ -66,10 +69,10 @@ class UserRegistrationView(generics.CreateAPIView):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         
-        verification_url = request.build_absolute_uri(
-            reverse('email-verify') + f'?token={token}&uid={uid}'
-        )
-        
+        base_url = (settings.FRONTEND_URL or request.build_absolute_uri('/')).rstrip('/')
+        relative_path = 'email-verify'
+        verification_url = f"{base_url}/{relative_path}?token={token}&uid={uid}"
+
         send_mail(
             'Verify your email address',
             f'Please click the link to verify your email: {verification_url}',
@@ -157,12 +160,17 @@ def google_auth(request):
     
     try:
         # Verify Google token
-        idinfo = id_token.verify_oauth2_token(
-            google_token, 
-            google_requests.Request(), 
-            settings.GOOGLE_CLIENT_ID
-        )
-        
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                google_token, 
+                google_requests.Request(),
+                settings.GOOGLE_CLIENT_ID,
+                clock_skew_in_seconds=10
+            )
+        except ValueError as e:
+            print(f"Google token verification failed: {str(e)}")
+            return Response({'error': f'Invalid Google token: {str(e)}'}, status=400)
+
         # Extract user info from Google
         email = idinfo.get('email')
         first_name = idinfo.get('given_name', '')
@@ -259,7 +267,9 @@ def resend_email_verification(request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     
     # Send verification email
-    verification_url = f"{settings.API_GATEWAY_URL}/verify-email?token={token}&uid={uid}"
+    base_url = (settings.FRONTEND_URL or request.build_absolute_uri('/')).rstrip('/')
+    relative_path = 'email-verify'
+    verification_url = f"{base_url}/{relative_path}?token={token}&uid={uid}"
     
     send_mail(
         'Verify your email address',
@@ -365,7 +375,6 @@ def email_verify(request):
         user = User.objects.get(pk=user_id)
         
         if default_token_generator.check_token(user, token):
-            user.is_active = True
             user.email_verified = True
             user.save()
             
@@ -432,9 +441,21 @@ def verify_api_key(request):
         return Response({'valid': False}, status=401)
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
-def public_endpoint(request):
-    """Public endpoint for testing purposes"""
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    """Get user profile information"""
+    user = request.user
     return Response({
-        'message': 'This is a public endpoint, accessible without authentication.'
+        'id': str(user.id),
+        'username': user.username,
+        'email': user.email,
+        'full_name': f"{user.first_name} {user.last_name}".strip(),
+        'role': user.role,
+        'organization': {
+            'id': str(user.organization.id) if user.organization else None,
+            'name': user.organization.name if user.organization else None,
+            'code': user.organization.code if user.organization else None,
+            'type': user.organization.type if user.organization else None,
+        } if user.organization else None,
+        'email_verified': user.email_verified
     })

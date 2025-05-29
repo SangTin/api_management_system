@@ -12,7 +12,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=False)
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
-    organization_code = serializers.CharField(write_only=True, required=False)
+    organization_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
     class Meta:
         model = User
