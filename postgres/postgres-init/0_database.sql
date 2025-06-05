@@ -9,3 +9,6 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'user_service_db')\gex
 
 SELECT 'CREATE DATABASE vendor_service_db' 
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vendor_service_db')\gexec
+
+SELECT 'CREATE DATABASE event_service_db' 
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'event_service_db')\gexec

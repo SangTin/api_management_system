@@ -193,6 +193,28 @@ services:
       postgres:
         condition: service_healthy
 
+  event-service:
+    build: 
+      context: .
+      dockerfile: ./event_service/Dockerfile
+      args:
+        SERVICE_NAME: event_service
+    container_name: api-management-event-service
+    volumes:
+      - ./event_service:/app
+      - ./shared:/app/shared
+    env_file:
+      - .env
+    environment:
+      - DB_NAME=event_service_db
+    depends_on:
+      redis:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
     driver: local
