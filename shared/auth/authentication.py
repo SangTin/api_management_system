@@ -90,9 +90,6 @@ class KongAuthentication(BaseAuthentication):
         clearance_level = request.headers.get('X-Clearance-Level', '1')
         emergency_override = request.headers.get('X-Emergency-Override', '').lower() == 'true'
         
-        print(f"X-User-ID: {user_id}, X-Username: {username}, X-User-Role: {user_role}, "
-              f"X-Organization-ID: {organization_id}, X-Clearance-Level: {clearance_level}, "
-              f"X-Emergency-Override: {emergency_override}")
         # Validate required fields
         if not user_id or not username:
             logger.warning("Kong authenticated but missing user info")

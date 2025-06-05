@@ -6,8 +6,16 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from shared.permissions.base import IsViewer, IsOperator, IsAdminUser, IsVendorAdmin, IsOwnerOrAdmin
+from shared.auth import KongAuthentication
 
-class OrganizationFilterMixin:
+class BaseMixin:
+    """Mixin cơ bản cho các viewset"""
+    
+    def get_authenticators(self):
+        authenticators = super().get_authenticators()
+        return [KongAuthentication()] + authenticators
+
+class OrganizationFilterMixin(BaseMixin):
     """Mixin để filter data theo organization của user"""
     
     def get_queryset(self):
@@ -42,7 +50,7 @@ class OrganizationFilterMixin:
         
         return queryset
     
-class PermissionRequiredMixin:
+class PermissionRequiredMixin(BaseMixin):
     """Mixin để check permission theo action"""
     permission_map = {
         'list': [IsViewer],
