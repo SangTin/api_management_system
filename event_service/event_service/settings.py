@@ -21,8 +21,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'events',      # App có models và consumers
-    'analytics',   # App analytics
+    'events',
+    'analytics',
 ]
 
 MIDDLEWARE = [

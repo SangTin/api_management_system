@@ -1,5 +1,6 @@
 from typing import Dict, Any, Optional
-from .service import kafka_service, EventTypes, Topics
+from .service import kafka_service
+from .topics import EventTypes, Topics
 
 class EventPublisher:
     """
