@@ -13,3 +13,9 @@ class VendorSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("User must be authenticated to create a vendor.")
         validated_data['created_by'] = request.user.id
         return super().create(validated_data)
+    
+class SimpleVendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vendor
+        fields = ('id', 'name')
+        read_only_fields = ('id', 'name')

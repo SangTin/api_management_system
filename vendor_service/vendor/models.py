@@ -19,6 +19,7 @@ class Vendor(models.Model):
 
     class Meta:
         db_table = 'vendors'
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.name} ({self.code})"

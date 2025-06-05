@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import APIConfiguration, CommandTemplate
+from vendor.models import Vendor
+from vendor.serializers import SimpleVendorSerializer
 
 class CommandTemplateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,8 +10,7 @@ class CommandTemplateSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at')
 
 class APIConfigurationSerializer(serializers.ModelSerializer):
-    commands = CommandTemplateSerializer(many=True, read_only=True, source='commandtemplate_set')
-    vendor_name = serializers.CharField(source='vendor.name', read_only=True)
+    vendor = SimpleVendorSerializer(read_only=True)
     
     class Meta:
         model = APIConfiguration

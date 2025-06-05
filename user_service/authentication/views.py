@@ -459,3 +459,14 @@ def user_profile(request):
         } if user.organization else None,
         'email_verified': user.email_verified
     })
+    
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_username(request):
+    """Check if a username is available"""
+    username = request.query_params.get('username')
+    if not username:
+        return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    exists = User.objects.filter(username__iexact=username).exists()
+    return Response({'available': not exists})

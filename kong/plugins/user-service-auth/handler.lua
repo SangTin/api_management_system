@@ -225,7 +225,7 @@ function UserServiceAuthHandler:access(conf)
   set_authenticated_headers(auth_data)
   
   -- Remove original authorization header to prevent token leakage
-  kong.service.request.clear_header("Authorization")
+  -- kong.service.request.clear_header("Authorization")
   
   kong.log.info("Authentication successful for user: ", auth_data.username, " (", auth_data.user_id, ")")
 end

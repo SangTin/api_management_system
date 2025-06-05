@@ -1,3 +1,6 @@
+SELECT 'CREATE DATABASE api_management_db' 
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'api_management_db')\gexec
+
 SELECT 'CREATE DATABASE kong_db' 
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'kong_db')\gexec
 

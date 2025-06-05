@@ -11,7 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/postgres-init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USER:-api_management}", "-d", "${DB_NAME:-api_management_db}" ]
+      test: [ "CMD", "pg_isready", "-U", "${DB_USER:-api_management}", "-d", "kong_db" ]
       interval: 10s
       timeout: 5s
       retries: 5

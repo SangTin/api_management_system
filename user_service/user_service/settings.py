@@ -32,6 +32,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'shared',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -43,7 +44,6 @@ INSTALLED_APPS = [
     'user',
     'organization',
     'authentication',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -113,7 +113,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = [
     'authentication.backends.EmailOrUsernameModelBackend',
-    'django.contrib.auth.backends.ModelBackend',
 ]
 
 AUTH_USER_MODEL = 'user.User'
@@ -150,6 +149,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')

@@ -3,7 +3,7 @@ from .views import (
     UserRegistrationView, CustomTokenObtainPairView, google_auth,
     password_reset_request, password_reset_confirm, email_verify,
     logout, verify_token, verify_api_key, resend_email_verification,
-    user_profile
+    user_profile, check_username
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -31,4 +31,5 @@ urlpatterns = [
     
     # User management
     path('profile/', user_profile, name='user-profile'),
+    path('check-username/', check_username, name='check-username'),
 ]

@@ -48,7 +48,20 @@ class IsOwnerOrAdmin(BaseMicroservicePermission):
     
     def has_permission(self, request, view):
         user_info = self.get_user_info(request)
-        return user_info['id'] is not None
+        
+        # Admin có quyền truy cập tất cả
+        if user_info['role'] == 'admin':
+            return True
+        
+        # Kiểm tra ownership dựa trên organization_id
+        if hasattr(view, 'organization_id'):
+            return str(view.organization_id) == user_info['organization_id']
+        
+        # Kiểm tra ownership trực tiếp với user_id
+        if hasattr(view, 'user_id'):
+            return str(view.user_id) == user_info['id']
+        
+        return False
     
     def has_object_permission(self, request, view, obj):
         user_info = self.get_user_info(request)
