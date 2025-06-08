@@ -7,6 +7,7 @@ class Topics:
     SYSTEM_EVENTS = 'system-events'
     AUDIT_EVENTS = 'audit-events'
     METRICS_EVENTS = 'metrics-events'
+    COMMAND_REQUESTS = 'command-requests'
 
 class EventTypes:
     """Event type constants"""
@@ -91,7 +92,7 @@ TOPIC_CONFIGS = {
         }
     },
     Topics.COMMAND_EVENTS: {
-        'partitions': 6,  # More partitions for high throughput
+        'partitions': 3,
         'replication_factor': 1,
         'config': {
             'retention.ms': str(7 * 24 * 60 * 60 * 1000),  # 7 days
@@ -125,5 +126,14 @@ TOPIC_CONFIGS = {
             'cleanup.policy': 'delete',
             'compression.type': 'snappy'
         }
-    }
+    },
+    Topics.COMMAND_REQUESTS: {
+        'partitions': 6,
+        'replication_factor': 1,
+        'config': {
+            'retention.ms': str(24 * 60 * 60 * 1000),  # 24 hours
+            'cleanup.policy': 'delete',
+            'compression.type': 'snappy'
+        }
+    },
 }

@@ -104,6 +104,7 @@ class EventPublisher:
     def publish_event(topic: str, event_type: str, data: Dict[str, Any], 
                      key: Optional[str] = None, headers: Optional[Dict[str, str]] = None):
         """Generic event publisher"""
+        print(f"Publishing event to topic {topic}: {event_type} with data: {data}")
         kafka_service.send_event(
             topic=topic,
             event_type=event_type,

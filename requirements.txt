@@ -8,9 +8,12 @@ django-cors-headers==4.7.0
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 google-auth==2.40.2
+grpcio==1.72.1
+grpcio-tools==1.72.1
 httplib2==0.22.0
 idna==3.10
 oauthlib==3.2.2
+protobuf==6.31.1
 psycopg2-binary==2.9.10
 pyasn1==0.6.1
 pyasn1_modules==0.4.2

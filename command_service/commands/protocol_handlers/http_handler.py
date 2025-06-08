@@ -1,6 +1,7 @@
 import requests
 import json
 from .base import BaseProtocolHandler
+from urllib.parse import urljoin
 
 class HTTPHandler(BaseProtocolHandler):
     def test_connection(self, api_config):
@@ -21,22 +22,44 @@ class HTTPHandler(BaseProtocolHandler):
         except Exception as e:
             raise Exception(f"HTTP connection test failed: {str(e)}")
 
-    def execute_command(self, api_config, command_template, params):
+    def execute_command(self, api_config, command_template, params, device=None):
         """Execute HTTP command"""
         try:
-            # Render templates
+            # Prepare URL
+            base_url = (
+                getattr(device, 'base_url', None)
+                or getattr(api_config, 'base_url', None)
+                or command_template.base_url
+            )
             url = self.render_template(
-                api_config.base_url + command_template.url_template, 
+                urljoin(base_url, command_template.url_template),
                 params
             )
-            headers = self.render_template(command_template.headers_template, params)
-            body = self.render_template(command_template.body_template, params)
             
-            # Add base headers
-            headers.update(api_config.headers_template)
-            
+            # Prepare headers
+            headers = {
+                **(command_template.headers_template or {}),
+                **(api_config.headers_template or {}),
+                **(getattr(device, 'headers_template', {}))
+            }
+            headers = self.render_template(headers, params)
+
+            # Prepare body
+            body = {
+                **(command_template.body_template or {}),
+                **(getattr(device, 'body_template', {}))
+            }
+            body = self.render_template(body, params)
+
             # Add authentication
-            self._add_auth(headers, api_config.auth_type, api_config.auth_config)
+            if getattr(device, 'auth_type', 'none') != 'none':
+                auth_type = device.auth_type
+                auth_config = device.auth_config
+            else:
+                auth_type = api_config.auth_type
+                auth_config = api_config.auth_config
+            
+            self._add_auth(headers, auth_type, auth_config)
             
             # Make request
             response = requests.request(
@@ -44,13 +67,18 @@ class HTTPHandler(BaseProtocolHandler):
                 url=url,
                 headers=headers,
                 json=body if body else None,
-                timeout=api_config.timeout
+                timeout=getattr(device, 'timeout', api_config.timeout),
             )
+            
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = response.text
             
             # Process response
             result = {
                 'status_code': response.status_code,
-                'response': response.json() if response.content else None,
+                'response': response_data,
                 'success': response.status_code < 400
             }
             

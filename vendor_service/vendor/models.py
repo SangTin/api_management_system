@@ -4,7 +4,7 @@ import uuid
 class Vendor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
-    code = models.CharField(max_length=50, unique=True)
+    code = models.CharField(max_length=50)
     contact_info = models.JSONField(default=dict)  # email, phone, address
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
@@ -19,6 +19,7 @@ class Vendor(models.Model):
 
     class Meta:
         db_table = 'vendors'
+        unique_together = ['code', 'created_by']
         ordering = ['-created_at']
 
     def __str__(self):

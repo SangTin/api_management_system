@@ -87,6 +87,12 @@ class TemplateRenderer:
             parts = key.split('.')
             value = params
             for part in parts:
+                if isinstance(value, list):
+                    try:
+                        part = int(part)
+                    except ValueError:
+                        raise KeyError(f"Invalid index: {part}")
+                    value = value[part]
                 if isinstance(value, dict):
                     value = value[part]
                 else:

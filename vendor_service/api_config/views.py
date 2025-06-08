@@ -3,9 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import APIConfiguration, CommandTemplate
 from .serializers import APIConfigurationSerializer, CommandTemplateSerializer
-from .constants import HTTP_METHOD_CHOICES, AUTH_CHOICES
-from protocol_handlers import get_protocol_handler
+from shared.models.constants import HTTP_METHOD_CHOICES, AUTH_CHOICES
 from shared.kafka.publisher import EventPublisher, EventTypes
+from shared.kafka.topics import Topics
 import time
 
 from shared.permissions import (
@@ -39,20 +39,6 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
         serializer.is_valid(raise_exception=True)
         api_config = serializer.save()
         
-        # Publish API config created event
-        EventPublisher.publish_api_config_event(
-            EventTypes.API_CONFIG_CREATED,
-            {
-                'config_id': str(api_config.id),
-                'name': api_config.name,
-                'vendor_id': str(api_config.vendor.id),
-                'vendor_name': api_config.vendor.name,
-                'protocol': api_config.protocol,
-                'version': api_config.version
-            },
-            str(request.user.id)
-        )
-        
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
@@ -71,24 +57,6 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
         serializer.is_valid(raise_exception=True)
         api_config = serializer.save()
         
-        # Publish API config updated event
-        EventPublisher.publish_api_config_event(
-            EventTypes.API_CONFIG_UPDATED,
-            {
-                'config_id': str(api_config.id),
-                'name': api_config.name,
-                'old_data': old_data,
-                'new_data': {
-                    'name': api_config.name,
-                    'version': api_config.version,
-                    'protocol': api_config.protocol,
-                    'base_url': api_config.base_url,
-                    'is_active': api_config.is_active
-                }
-            },
-            str(request.user.id)
-        )
-        
         return Response(serializer.data)
     
     def list(self, request, *args, **kwargs):
@@ -105,60 +73,32 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='test-command')
     def test_command(self, request, pk=None):
         api_config = self.get_object()
         command_type = request.data.get('command_type')
         params = request.data.get('params', {})
         
-        start_time = time.time()
         try:
-            command_template = CommandTemplate.objects.get(
-                api_config=api_config,
-                command_type=command_type
-            )
-            
-            handler = get_protocol_handler(api_config.protocol)
-            result = handler.execute_command(api_config, command_template, params)
-            execution_time = time.time() - start_time
-            
-            # Publish command test event
-            EventPublisher.publish_command_event(
-                EventTypes.COMMAND_EXECUTED,
+            EventPublisher.publish_event(
+                Topics.COMMAND_REQUESTS,
+                EventTypes.COMMAND_REQUESTED,
                 {
-                    'config_id': str(api_config.id),
+                    'api_config_id': str(api_config.id),
                     'command_type': command_type,
-                    'params': params,
-                    'result': result,
-                    'execution_time': execution_time,
-                    'test_mode': True,
+                    'command_params': params,
                     'user_id': str(request.user.id)
                 }
             )
+            print(f"Testing command: {command_type} with params: {params}")
             
             return Response({
                 'success': True,
-                'result': result
             })
             
         except Exception as e:
-            execution_time = time.time() - start_time
             error_message = str(e)
-            
-            # Publish failed command test event
-            EventPublisher.publish_command_event(
-                EventTypes.COMMAND_FAILED,
-                {
-                    'config_id': str(api_config.id),
-                    'command_type': command_type,
-                    'params': params,
-                    'error': error_message,
-                    'execution_time': execution_time,
-                    'test_mode': True,
-                    'user_id': str(request.user.id)
-                }
-            )
-            
+            print(f"Error testing command: {error_message}")
             return Response({
                 'success': False,
                 'error': error_message
@@ -171,6 +111,26 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
         """
         auth_methods = ({"value": code, "label": label} for code, label in AUTH_CHOICES)
         return Response(auth_methods, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path='commands')
+    def commands(self, request, pk=None):
+        api_configs = self.filter_queryset(self.get_queryset())
+        commands = []
+        for api_config in api_configs:
+            commands.append({
+                'id': str(api_config.id),
+                'name': api_config.name,
+                'version': api_config.version,
+                'commands': [
+                    {
+                        'id': str(cmd.id),
+                        'command_type': cmd.command_type,
+                        'name': cmd.name,
+                        'method': cmd.method,
+                    } for cmd in CommandTemplate.objects.filter(api_config=api_config)
+                ]
+            })
+        return Response(commands, status=status.HTTP_200_OK)
 
 class CommandTemplateViewSet(PermissionRequiredMixin, OrganizationFilterMixin, viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -200,18 +160,6 @@ class CommandTemplateViewSet(PermissionRequiredMixin, OrganizationFilterMixin, v
         serializer.is_valid(raise_exception=True)
         command_template = serializer.save()
         
-        # Publish command template created event
-        EventPublisher.publish_api_config_event(
-            'command_template_created',
-            {
-                'template_id': str(command_template.id),
-                'command_type': command_template.command_type,
-                'config_id': str(command_template.api_config.id),
-                'config_name': command_template.api_config.name
-            },
-            str(request.user.id)
-        )
-        
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
@@ -225,3 +173,11 @@ class CommandTemplateViewSet(PermissionRequiredMixin, OrganizationFilterMixin, v
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='methods')
+    def methods(self, request, pk=None):
+        """
+        Returns the list of supported HTTP methods.
+        """
+        methods = ({"value": code, "label": label} for code, label in HTTP_METHOD_CHOICES)
+        return Response(methods, status=status.HTTP_200_OK)
