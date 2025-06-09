@@ -11,7 +11,7 @@ class BaseProtocolHandler(ABC):
         pass
 
     @abstractmethod
-    def execute_command(self, api_config, command_template, params):
+    def execute_command(self, api_config, command_template, params, device=None):
         """Execute a command using the API configuration"""
         pass
 

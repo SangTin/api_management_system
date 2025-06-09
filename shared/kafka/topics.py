@@ -7,7 +7,11 @@ class Topics:
     SYSTEM_EVENTS = 'system-events'
     AUDIT_EVENTS = 'audit-events'
     METRICS_EVENTS = 'metrics-events'
-    COMMAND_REQUESTS = 'command-requests'
+    
+    API_TEST_REQUESTS = 'api-test-requests'
+    DEVICE_COMMANDS = 'device-commands'
+    DEVICE_STATUS = 'device-status'
+    COMMAND_RESULTS = 'command-results'
 
 class EventTypes:
     """Event type constants"""
@@ -34,19 +38,39 @@ class EventTypes:
     API_CONFIG_DEACTIVATED = 'api_config_deactivated'
     API_CONFIG_DELETED = 'api_config_deleted'
     
-    # Command execution events
+    # API Test events
+    API_TEST_REQUESTED = 'api_test_requested'
+    API_TEST_EXECUTING = 'api_test_executing'
+    API_TEST_COMPLETED = 'api_test_completed'
+    API_TEST_FAILED = 'api_test_failed'
+    
+    # Command execution events (GENERAL)
     COMMAND_REQUESTED = 'command_requested'
     COMMAND_EXECUTING = 'command_executing'
     COMMAND_EXECUTED = 'command_executed'
     COMMAND_FAILED = 'command_failed'
     COMMAND_TIMEOUT = 'command_timeout'
     
+    # Device Command events
+    DEVICE_COMMAND_REQUESTED = 'device_command_requested'
+    DEVICE_COMMAND_EXECUTING = 'device_command_executing'
+    DEVICE_COMMAND_COMPLETED = 'device_command_completed'
+    DEVICE_COMMAND_FAILED = 'device_command_failed'
+    DEVICE_COMMAND_TIMEOUT = 'device_command_timeout'
+    
     # Command Template events
     COMMAND_TEMPLATE_DELETED = 'command_template_deleted'
     COMMAND_TEMPLATE_TYPE_CHANGED = 'command_template_type_changed'
     
-    # Device Command events  
+    # Device events
+    DEVICE_ONLINE = 'device_online'
+    DEVICE_OFFLINE = 'device_offline'
+    DEVICE_STATUS_CHANGED = 'device_status_changed'
     DEVICE_COMMANDS_DISCONNECTED = 'device_commands_disconnected'
+    
+    # Command Result events
+    COMMAND_RESULT_SUCCESS = 'command_result_success'
+    COMMAND_RESULT_ERROR = 'command_result_error'
     
     # System events
     SYSTEM_ERROR = 'system_error'
@@ -135,11 +159,41 @@ TOPIC_CONFIGS = {
             'compression.type': 'snappy'
         }
     },
-    Topics.COMMAND_REQUESTS: {
-        'partitions': 6,
+    
+    # NEW TOPICS
+    Topics.API_TEST_REQUESTS: {
+        'partitions': 3,
         'replication_factor': 1,
         'config': {
             'retention.ms': str(24 * 60 * 60 * 1000),  # 24 hours
+            'cleanup.policy': 'delete',
+            'compression.type': 'snappy'
+        }
+    },
+    Topics.DEVICE_COMMANDS: {
+        'partitions': 3,
+        'replication_factor': 1,
+        'config': {
+            'retention.ms': str(7 * 24 * 60 * 60 * 1000),  # 7 days
+            'cleanup.policy': 'delete',
+            'compression.type': 'snappy',
+            'max.message.bytes': '10485760'
+        }
+    },
+    Topics.DEVICE_STATUS: {
+        'partitions': 6,
+        'replication_factor': 1,
+        'config': {
+            'retention.ms': str(3 * 24 * 60 * 60 * 1000),  # 3 days
+            'cleanup.policy': 'delete',
+            'compression.type': 'snappy'
+        }
+    },
+    Topics.COMMAND_RESULTS: {
+        'partitions': 6,
+        'replication_factor': 1,
+        'config': {
+            'retention.ms': str(7 * 24 * 60 * 60 * 1000),  # 7 days
             'cleanup.policy': 'delete',
             'compression.type': 'snappy'
         }

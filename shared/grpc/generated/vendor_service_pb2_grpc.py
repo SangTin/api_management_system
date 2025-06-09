@@ -39,12 +39,45 @@ class VendorServiceStub(object):
                 request_serializer=vendor__service__pb2.CommandContextRequest.SerializeToString,
                 response_deserializer=vendor__service__pb2.CommandContext.FromString,
                 _registered_method=True)
+        self.GetAPIConfigByID = channel.unary_unary(
+                '/vendor.VendorService/GetAPIConfigByID',
+                request_serializer=vendor__service__pb2.GetAPIConfigByIDRequest.SerializeToString,
+                response_deserializer=vendor__service__pb2.GetApiConfigByIDResponse.FromString,
+                _registered_method=True)
+        self.GetCommandTemplate = channel.unary_unary(
+                '/vendor.VendorService/GetCommandTemplate',
+                request_serializer=vendor__service__pb2.CommandTemplateRequest.SerializeToString,
+                response_deserializer=vendor__service__pb2.GetCommandTemplateResponse.FromString,
+                _registered_method=True)
+        self.GetDevice = channel.unary_unary(
+                '/vendor.VendorService/GetDevice',
+                request_serializer=vendor__service__pb2.DeviceRequest.SerializeToString,
+                response_deserializer=vendor__service__pb2.GetDeviceResponse.FromString,
+                _registered_method=True)
 
 
 class VendorServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def GetCommandContext(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetAPIConfigByID(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCommandTemplate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetDevice(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +90,21 @@ def add_VendorServiceServicer_to_server(servicer, server):
                     servicer.GetCommandContext,
                     request_deserializer=vendor__service__pb2.CommandContextRequest.FromString,
                     response_serializer=vendor__service__pb2.CommandContext.SerializeToString,
+            ),
+            'GetAPIConfigByID': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAPIConfigByID,
+                    request_deserializer=vendor__service__pb2.GetAPIConfigByIDRequest.FromString,
+                    response_serializer=vendor__service__pb2.GetApiConfigByIDResponse.SerializeToString,
+            ),
+            'GetCommandTemplate': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCommandTemplate,
+                    request_deserializer=vendor__service__pb2.CommandTemplateRequest.FromString,
+                    response_serializer=vendor__service__pb2.GetCommandTemplateResponse.SerializeToString,
+            ),
+            'GetDevice': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDevice,
+                    request_deserializer=vendor__service__pb2.DeviceRequest.FromString,
+                    response_serializer=vendor__service__pb2.GetDeviceResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +134,87 @@ class VendorService(object):
             '/vendor.VendorService/GetCommandContext',
             vendor__service__pb2.CommandContextRequest.SerializeToString,
             vendor__service__pb2.CommandContext.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetAPIConfigByID(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/vendor.VendorService/GetAPIConfigByID',
+            vendor__service__pb2.GetAPIConfigByIDRequest.SerializeToString,
+            vendor__service__pb2.GetApiConfigByIDResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCommandTemplate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/vendor.VendorService/GetCommandTemplate',
+            vendor__service__pb2.CommandTemplateRequest.SerializeToString,
+            vendor__service__pb2.GetCommandTemplateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDevice(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/vendor.VendorService/GetDevice',
+            vendor__service__pb2.DeviceRequest.SerializeToString,
+            vendor__service__pb2.GetDeviceResponse.FromString,
             options,
             channel_credentials,
             insecure,

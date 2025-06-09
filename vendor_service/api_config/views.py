@@ -8,6 +8,7 @@ from shared.models.constants import HTTP_METHOD_CHOICES, AUTH_CHOICES
 from shared.kafka.publisher import EventPublisher, EventTypes
 from shared.kafka.topics import Topics
 import time
+import uuid
 
 from shared.permissions import (
     IsAdminUser,
@@ -70,36 +71,29 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
     @action(detail=True, methods=['post'], url_path='test-command')
     def test_command(self, request, pk=None):
         api_config = self.get_object()
-        command_type = request.data.get('command_type')
+        command_id = request.data.get('command_id')
         params = request.data.get('params', {})
         
-        try:
-            command_id = uuid.uuid4()
-            
-            EventPublisher.publish_event(
-                Topics.COMMAND_REQUESTS,
-                EventTypes.COMMAND_REQUESTED,
-                {
-                    'command_id': str(command_id),
-                    'api_config_id': str(api_config.id),
-                    'command_type': command_type,
-                    'command_params': params,
-                    'user_id': str(request.user.id),
-                }
-            )
-            
-            return Response({
-                'success': True,
-                'command_id': str(command_id),
-                'message': 'Command test initiated successfully.'
-            })
-            
-        except Exception as e:
-            error_message = str(e)
-            return Response({
-                'success': False,
-                'error': error_message
-            }, status=400)
+        test_id = str(uuid.uuid4())
+        
+        # Publish to API test topic
+        EventPublisher.publish_event(
+            Topics.API_TEST_REQUESTS,
+            EventTypes.API_TEST_REQUESTED,
+            {
+                'test_id': test_id,
+                'api_config_id': str(api_config.id),
+                'command_id': command_id,
+                'params': params,
+                'user_id': str(request.user.id),
+            }
+        )
+        
+        return Response({
+            'success': True,
+            'test_id': test_id,
+            'message': 'API test initiated successfully.'
+        })
     
     @action(detail=False, methods=['get'], url_path='auth-methods')
     def auth_methods(self, request, pk=None):

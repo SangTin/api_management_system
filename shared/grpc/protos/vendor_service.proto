@@ -2,49 +2,122 @@ syntax = "proto3";
 
 package vendor;
 
-service VendorService {
-    rpc GetCommandContext(CommandContextRequest) returns (CommandContext);
-}
-
 import "google/protobuf/struct.proto";
 
-message CommandContextRequest {
+service VendorService {
+    rpc GetCommandContext(CommandContextRequest) returns (CommandContext);
+    rpc GetAPIConfigByID(GetAPIConfigByIDRequest) returns (GetApiConfigByIDResponse);
+    rpc GetCommandTemplate(CommandTemplateRequest) returns (GetCommandTemplateResponse);
+    rpc GetDevice(DeviceRequest) returns (GetDeviceResponse);
+}
+
+message GetAPIConfigByIDRequest {
     string api_config_id = 1;
-    string command_id = 2;
-    string device_id = 3;
+}
+
+message GetApiConfigByIDResponse {
+    APIConfiguration api_config = 1;
+}
+
+message CommandTemplateRequest {
+    string command_template_id = 1;
+}
+
+message GetCommandTemplateResponse {
+    CommandTemplate command_template = 1;
+}
+
+message DeviceRequest {
+    string device_id = 1;
+}
+
+message GetDeviceResponse {
+    Device device = 1;
+}
+
+message CommandContextRequest {
+    string device_id = 1;
+    string command_type = 2;
+}
+
+message CommandContext {
+    Device device = 1;
+    APIConfiguration api_config = 2;
+    CommandTemplate command_template = 3;
+    DeviceCommand device_command = 4;
 }
 
 message Device {
     string id = 1;
     string name = 2;
-    string base_url = 3;
-    string auth_type = 4;
-    google.protobuf.Struct auth_config = 5;
-    google.protobuf.Struct headers_template = 6;
-    google.protobuf.Struct params_template = 7;
+    string model = 3;
+    string serial_number = 4;
+    string firmware_version = 5;
+    string base_url = 6;
+    string auth_type = 7;
+    google.protobuf.Struct auth_config = 8;
+    google.protobuf.Struct headers_template = 9;
+    google.protobuf.Struct body_template = 10;
+    google.protobuf.Struct params_template = 11;
+    int32 timeout = 12;
+    int32 retry_count = 13;
+    int32 retry_delay = 14;
+    string vendor_id = 15;
+    string vendor_name = 16;
+    bool is_active = 17;
+    string created_at = 18;
+    string updated_at = 19;
 }
 
-message Command {
+message APIConfiguration {
     string id = 1;
     string name = 2;
-    string url_template = 3;
-    string method = 4;
-    google.protobuf.Struct body_template = 5;
+    string version = 3;
+    string description = 4;
+    string base_url = 5;
+    string auth_type = 6;
+    google.protobuf.Struct auth_config = 7;
+    google.protobuf.Struct headers_template = 8;
+    int32 timeout = 9;
+    int32 retry_count = 10;
+    int32 retry_delay = 11;
+    string vendor_id = 12;
+    string vendor_name = 13;
+    bool is_active = 14;
+    string created_by = 15;
+    string created_at = 16;
+    string updated_at = 17;
 }
 
-message ApiConfig {
+message CommandTemplate {
     string id = 1;
     string name = 2;
-    string base_url = 3;
-    string auth_type = 4;
-    google.protobuf.Struct auth_config = 5;
-    google.protobuf.Struct headers_template = 6;
-    int32 timeout = 7;
+    string command_type = 3;
+    string description = 4;
+    string method = 5;
+    string url_template = 6;
+    google.protobuf.Struct body_template = 7;
+    google.protobuf.Struct headers_template = 8;
+    string base_url = 9;
+    int32 timeout = 10;
+    int32 retry_count = 11;
+    int32 retry_delay = 12;
+    repeated string required_params = 13;
+    repeated string optional_params = 14;
+    string api_config_id = 15;
+    string created_at = 16;
+    string updated_at = 17;
 }
 
-message CommandContext {
-    Device device = 1;
-    Command command = 2;
-    ApiConfig api_config = 3;
-    google.protobuf.Struct params = 4;
+message DeviceCommand {
+    string id = 1;
+    string device_id = 2;
+    string command_template_id = 3;
+    string command_type = 4;
+    google.protobuf.Struct custom_params = 5;
+    bool is_primary = 6;
+    int32 priority = 7;
+    bool is_active = 8;
+    string created_at = 9;
+    string updated_at = 10;
 }
