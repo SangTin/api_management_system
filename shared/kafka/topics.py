@@ -32,6 +32,7 @@ class EventTypes:
     API_CONFIG_TESTED = 'api_config_tested'
     API_CONFIG_ACTIVATED = 'api_config_activated'
     API_CONFIG_DEACTIVATED = 'api_config_deactivated'
+    API_CONFIG_DELETED = 'api_config_deleted'
     
     # Command execution events
     COMMAND_REQUESTED = 'command_requested'
@@ -39,6 +40,13 @@ class EventTypes:
     COMMAND_EXECUTED = 'command_executed'
     COMMAND_FAILED = 'command_failed'
     COMMAND_TIMEOUT = 'command_timeout'
+    
+    # Command Template events
+    COMMAND_TEMPLATE_DELETED = 'command_template_deleted'
+    COMMAND_TEMPLATE_TYPE_CHANGED = 'command_template_type_changed'
+    
+    # Device Command events  
+    DEVICE_COMMANDS_DISCONNECTED = 'device_commands_disconnected'
     
     # System events
     SYSTEM_ERROR = 'system_error'

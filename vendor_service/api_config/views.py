@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,13 +46,6 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        old_data = {
-            'name': instance.name,
-            'version': instance.version,
-            'protocol': instance.protocol,
-            'base_url': instance.base_url,
-            'is_active': instance.is_active
-        }
         
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
@@ -61,7 +55,7 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        vendor_id = request.query_params.get('vendor')
+        vendor_id = request.query_params.get('vendor_id')
         if vendor_id:
             queryset = queryset.filter(vendor_id=vendor_id)
         
@@ -80,25 +74,28 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
         params = request.data.get('params', {})
         
         try:
+            command_id = uuid.uuid4()
+            
             EventPublisher.publish_event(
                 Topics.COMMAND_REQUESTS,
                 EventTypes.COMMAND_REQUESTED,
                 {
+                    'command_id': str(command_id),
                     'api_config_id': str(api_config.id),
                     'command_type': command_type,
                     'command_params': params,
-                    'user_id': str(request.user.id)
+                    'user_id': str(request.user.id),
                 }
             )
-            print(f"Testing command: {command_type} with params: {params}")
             
             return Response({
                 'success': True,
+                'command_id': str(command_id),
+                'message': 'Command test initiated successfully.'
             })
             
         except Exception as e:
             error_message = str(e)
-            print(f"Error testing command: {error_message}")
             return Response({
                 'success': False,
                 'error': error_message
@@ -116,26 +113,50 @@ class APIConfigurationViewSet(PermissionRequiredMixin, OrganizationFilterMixin, 
     def commands(self, request, pk=None):
         api_configs = self.filter_queryset(self.get_queryset())
         commands = []
+        
+        # Add commands for each API config
         for api_config in api_configs:
+            api_commands = CommandTemplate.objects.filter(api_config=api_config)
+            if api_commands.exists():
+                commands.append({
+                    'id': str(api_config.id),
+                    'name': api_config.name,
+                    'version': api_config.version,
+                    'type': 'api_config',
+                    'commands': [
+                        {
+                            'id': str(cmd.id),
+                            'command_type': cmd.command_type,
+                            'name': cmd.name,
+                            'method': cmd.method,
+                        } for cmd in api_commands
+                    ]
+                })
+        
+        # Add commands without API config to "Others" group
+        orphan_commands = CommandTemplate.objects.filter(api_config__isnull=True)
+        if orphan_commands.exists():
             commands.append({
-                'id': str(api_config.id),
-                'name': api_config.name,
-                'version': api_config.version,
+                'id': 'others',
+                'name': 'Others',
+                'type': 'others',
                 'commands': [
                     {
                         'id': str(cmd.id),
                         'command_type': cmd.command_type,
                         'name': cmd.name,
                         'method': cmd.method,
-                    } for cmd in CommandTemplate.objects.filter(api_config=api_config)
+                    } for cmd in orphan_commands
                 ]
             })
+        
         return Response(commands, status=status.HTTP_200_OK)
 
 class CommandTemplateViewSet(PermissionRequiredMixin, OrganizationFilterMixin, viewsets.ModelViewSet):
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'id']
-    ordering_fields = ['name', 'created_at']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['command_type', 'api_config']
+    search_fields = ['name', 'id', 'command_type']
+    ordering_fields = ['name', 'created_at', 'command_type']
     queryset = CommandTemplate.objects.all()
     serializer_class = CommandTemplateSerializer
 
@@ -147,12 +168,6 @@ class CommandTemplateViewSet(PermissionRequiredMixin, OrganizationFilterMixin, v
         'partial_update': [IsOwnerOrAdmin],
         'destroy': [IsAdminUser],
     }
-    
-    def get_queryset(self):
-        api_config_id = self.request.query_params.get('api_config')
-        if api_config_id:
-            return self.queryset.filter(api_config_id=api_config_id)
-        return self.queryset
     
     def create(self, request, *args, **kwargs):
         """Create command template và publish event"""

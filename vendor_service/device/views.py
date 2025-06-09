@@ -1,8 +1,9 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Device
-from .serializers import DeviceSerializer
+from .models import Device, DeviceCommand
+from .serializers import DeviceSerializer, DeviceCommandSerializer
 
 from shared.permissions import (
     IsAdminUser,
@@ -31,3 +32,32 @@ class DeviceViewSet(PermissionRequiredMixin, OrganizationFilterMixin, viewsets.M
         'activate': [IsAdminUser],
         'deactivate': [IsAdminUser],
     }
+    
+class DeviceCommandViewSet(PermissionRequiredMixin, OrganizationFilterMixin, viewsets.ModelViewSet):
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['command']
+    search_fields = ['device__name', 'command__name', 'command__id']
+    ordering_fields = ['device__name', 'command__name', 'created_at']
+    queryset = DeviceCommand.objects.all()
+    serializer_class = DeviceCommandSerializer
+
+    permission_map = {
+        'list': [IsAdminUser],
+        'retrieve': [IsOwnerOrAdmin],
+        'create': [IsAdminUser],
+        'update': [IsOwnerOrAdmin],
+        'partial_update': [IsOwnerOrAdmin],
+        'destroy': [IsAdminUser],
+    }
+    
+    def list(self, request, *args, **kwargs):
+        commands = self.filter_queryset(self.get_queryset())
+        data = {}
+
+        for command in commands:
+            command_type = command.command_type
+            if command_type not in data:
+                data[command_type] = []
+            data[command_type].append(DeviceCommandSerializer(command).data)
+
+        return Response(data, status=status.HTTP_200_OK)

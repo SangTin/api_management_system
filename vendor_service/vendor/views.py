@@ -62,22 +62,6 @@ class VendorViewSet(PermissionRequiredMixin, OrganizationFilterMixin, viewsets.M
         serializer.is_valid(raise_exception=True)
         vendor = serializer.save()
         
-        # Publish vendor updated event
-        EventPublisher.publish_vendor_event(
-            EventTypes.VENDOR_UPDATED,
-            {
-                'vendor_id': str(vendor.id),
-                'name': vendor.name,
-                'old_data': old_data,
-                'new_data': {
-                    'name': vendor.name,
-                    'status': vendor.status,
-                    'description': vendor.description
-                }
-            },
-            str(request.user.id)
-        )
-        
         return Response(serializer.data)
     
     def list(self, request, *args, **kwargs):

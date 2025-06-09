@@ -72,4 +72,21 @@ class PermissionRequiredMixin(BaseMixin):
         
         return [permission() for permission in permission_classes]
     
+class ActiveMixin:
+    """Mixin để filter data theo trạng thái active"""
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return queryset.none()
+        
+        # Admin thấy tất cả
+        if user.role == 'admin':
+            return queryset
+        
+        # Các role khác chỉ thấy data active
+        if hasattr(queryset.model, 'is_active'):
+            return queryset.filter(is_active=True)
     

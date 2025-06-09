@@ -25,21 +25,23 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14vendor_service.proto\x12\x06vendor\x1a\x1cgoogle/protobuf/struct.proto\"E\n\x16\x43ommandTemplateRequest\x12\x15\n\rapi_config_id\x18\x01 \x01(\t\x12\x14\n\x0c\x63ommand_type\x18\x02 \x01(\t\"\xcc\x01\n\x0f\x43ommandTemplate\x12\x14\n\x0curl_template\x18\x01 \x01(\t\x12\x0e\n\x06method\x18\x02 \x01(\t\x12\x31\n\x10headers_template\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\x12.\n\rbody_template\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x17\n\x0frequired_params\x18\x05 \x03(\t\x12\x17\n\x0foptional_params\x18\x06 \x03(\t\")\n\x10\x41piConfigRequest\x12\x15\n\rapi_config_id\x18\x01 \x01(\t\"\xa6\x02\n\x10\x41PIConfiguration\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tvendor_id\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0f\n\x07version\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\x12\x10\n\x08\x62\x61se_url\x18\x06 \x01(\t\x12\x11\n\tauth_type\x18\x07 \x01(\t\x12,\n\x0b\x61uth_config\x18\x08 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x31\n\x10headers_template\x18\t \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x0f\n\x07timeout\x18\n \x01(\x05\x12\x13\n\x0bretry_count\x18\x0b \x01(\x05\x12\x13\n\x0bretry_delay\x18\x0c \x01(\x05\x32\xa2\x01\n\rVendorService\x12\x42\n\x0cGetApiConfig\x12\x18.vendor.ApiConfigRequest\x1a\x18.vendor.APIConfiguration\x12M\n\x12GetCommandTemplate\x12\x1e.vendor.CommandTemplateRequest\x1a\x17.vendor.CommandTemplateb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14vendor_service.proto\x12\x06vendor\x1a\x1cgoogle/protobuf/struct.proto\"U\n\x15\x43ommandContextRequest\x12\x15\n\rapi_config_id\x18\x01 \x01(\t\x12\x12\n\ncommand_id\x18\x02 \x01(\t\x12\x11\n\tdevice_id\x18\x03 \x01(\t\"\xda\x01\n\x06\x44\x65vice\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x10\n\x08\x62\x61se_url\x18\x03 \x01(\t\x12\x11\n\tauth_type\x18\x04 \x01(\t\x12,\n\x0b\x61uth_config\x18\x05 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x31\n\x10headers_template\x18\x06 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x30\n\x0fparams_template\x18\x07 \x01(\x0b\x32\x17.google.protobuf.Struct\"y\n\x07\x43ommand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x14\n\x0curl_template\x18\x03 \x01(\t\x12\x0e\n\x06method\x18\x04 \x01(\t\x12.\n\rbody_template\x18\x05 \x01(\x0b\x32\x17.google.protobuf.Struct\"\xbc\x01\n\tApiConfig\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x10\n\x08\x62\x61se_url\x18\x03 \x01(\t\x12\x11\n\tauth_type\x18\x04 \x01(\t\x12,\n\x0b\x61uth_config\x18\x05 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x31\n\x10headers_template\x18\x06 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x0f\n\x07timeout\x18\x07 \x01(\x05\"\xa2\x01\n\x0e\x43ommandContext\x12\x1e\n\x06\x64\x65vice\x18\x01 \x01(\x0b\x32\x0e.vendor.Device\x12 \n\x07\x63ommand\x18\x02 \x01(\x0b\x32\x0f.vendor.Command\x12%\n\napi_config\x18\x03 \x01(\x0b\x32\x11.vendor.ApiConfig\x12\'\n\x06params\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct2[\n\rVendorService\x12J\n\x11GetCommandContext\x12\x1d.vendor.CommandContextRequest\x1a\x16.vendor.CommandContextb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'vendor_service_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_COMMANDTEMPLATEREQUEST']._serialized_start=62
-  _globals['_COMMANDTEMPLATEREQUEST']._serialized_end=131
-  _globals['_COMMANDTEMPLATE']._serialized_start=134
-  _globals['_COMMANDTEMPLATE']._serialized_end=338
-  _globals['_APICONFIGREQUEST']._serialized_start=340
-  _globals['_APICONFIGREQUEST']._serialized_end=381
-  _globals['_APICONFIGURATION']._serialized_start=384
-  _globals['_APICONFIGURATION']._serialized_end=678
-  _globals['_VENDORSERVICE']._serialized_start=681
-  _globals['_VENDORSERVICE']._serialized_end=843
+  _globals['_COMMANDCONTEXTREQUEST']._serialized_start=62
+  _globals['_COMMANDCONTEXTREQUEST']._serialized_end=147
+  _globals['_DEVICE']._serialized_start=150
+  _globals['_DEVICE']._serialized_end=368
+  _globals['_COMMAND']._serialized_start=370
+  _globals['_COMMAND']._serialized_end=491
+  _globals['_APICONFIG']._serialized_start=494
+  _globals['_APICONFIG']._serialized_end=682
+  _globals['_COMMANDCONTEXT']._serialized_start=685
+  _globals['_COMMANDCONTEXT']._serialized_end=847
+  _globals['_VENDORSERVICE']._serialized_start=849
+  _globals['_VENDORSERVICE']._serialized_end=940
 # @@protoc_insertion_point(module_scope)

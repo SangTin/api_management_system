@@ -3,47 +3,48 @@ syntax = "proto3";
 package vendor;
 
 service VendorService {
-    rpc GetApiConfig(ApiConfigRequest) returns (APIConfiguration);
-    rpc GetCommandTemplate(CommandTemplateRequest) returns (CommandTemplate);
+    rpc GetCommandContext(CommandContextRequest) returns (CommandContext);
 }
 
 import "google/protobuf/struct.proto";
 
-message CommandTemplateRequest {
+message CommandContextRequest {
     string api_config_id = 1;
-    string command_type = 2;
+    string command_id = 2;
+    string device_id = 3;
 }
 
-message CommandTemplate {
-    string url_template = 1;
-    string method = 2;
-    google.protobuf.Struct headers_template = 3;
-    google.protobuf.Struct body_template = 4;
-    repeated string required_params = 5;
-    repeated string optional_params = 6;
-}
-
-message ApiConfigRequest {
-    string api_config_id = 1;
-}
-
-message APIConfiguration {
+message Device {
     string id = 1;
-    string vendor_id = 2;
-    string name = 3;
-    string version = 4;
-    string description = 5;
-    string base_url = 6;
+    string name = 2;
+    string base_url = 3;
+    string auth_type = 4;
+    google.protobuf.Struct auth_config = 5;
+    google.protobuf.Struct headers_template = 6;
+    google.protobuf.Struct params_template = 7;
+}
 
-    // Authentication Configuration
-    string auth_type = 7;
-    google.protobuf.Struct auth_config = 8;
+message Command {
+    string id = 1;
+    string name = 2;
+    string url_template = 3;
+    string method = 4;
+    google.protobuf.Struct body_template = 5;
+}
 
-    // Request Templates
-    google.protobuf.Struct headers_template = 9;
+message ApiConfig {
+    string id = 1;
+    string name = 2;
+    string base_url = 3;
+    string auth_type = 4;
+    google.protobuf.Struct auth_config = 5;
+    google.protobuf.Struct headers_template = 6;
+    int32 timeout = 7;
+}
 
-    // Settings
-    int32 timeout = 10;
-    int32 retry_count = 11;
-    int32 retry_delay = 12;
+message CommandContext {
+    Device device = 1;
+    Command command = 2;
+    ApiConfig api_config = 3;
+    google.protobuf.Struct params = 4;
 }

@@ -26,4 +26,5 @@ urlpatterns = [
     path('health/', health_check, name='health_check'),
     path('api/vendors/', include('vendor.urls')),
     path('api/', include('api_config.urls')),
+    path('api/', include('device.urls')),
 ]

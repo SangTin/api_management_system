@@ -34,28 +34,17 @@ class VendorServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GetApiConfig = channel.unary_unary(
-                '/vendor.VendorService/GetApiConfig',
-                request_serializer=vendor__service__pb2.ApiConfigRequest.SerializeToString,
-                response_deserializer=vendor__service__pb2.APIConfiguration.FromString,
-                _registered_method=True)
-        self.GetCommandTemplate = channel.unary_unary(
-                '/vendor.VendorService/GetCommandTemplate',
-                request_serializer=vendor__service__pb2.CommandTemplateRequest.SerializeToString,
-                response_deserializer=vendor__service__pb2.CommandTemplate.FromString,
+        self.GetCommandContext = channel.unary_unary(
+                '/vendor.VendorService/GetCommandContext',
+                request_serializer=vendor__service__pb2.CommandContextRequest.SerializeToString,
+                response_deserializer=vendor__service__pb2.CommandContext.FromString,
                 _registered_method=True)
 
 
 class VendorServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def GetApiConfig(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetCommandTemplate(self, request, context):
+    def GetCommandContext(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -64,15 +53,10 @@ class VendorServiceServicer(object):
 
 def add_VendorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'GetApiConfig': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetApiConfig,
-                    request_deserializer=vendor__service__pb2.ApiConfigRequest.FromString,
-                    response_serializer=vendor__service__pb2.APIConfiguration.SerializeToString,
-            ),
-            'GetCommandTemplate': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCommandTemplate,
-                    request_deserializer=vendor__service__pb2.CommandTemplateRequest.FromString,
-                    response_serializer=vendor__service__pb2.CommandTemplate.SerializeToString,
+            'GetCommandContext': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCommandContext,
+                    request_deserializer=vendor__service__pb2.CommandContextRequest.FromString,
+                    response_serializer=vendor__service__pb2.CommandContext.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,7 +70,7 @@ class VendorService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def GetApiConfig(request,
+    def GetCommandContext(request,
             target,
             options=(),
             channel_credentials=None,
@@ -99,36 +83,9 @@ class VendorService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/vendor.VendorService/GetApiConfig',
-            vendor__service__pb2.ApiConfigRequest.SerializeToString,
-            vendor__service__pb2.APIConfiguration.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetCommandTemplate(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/vendor.VendorService/GetCommandTemplate',
-            vendor__service__pb2.CommandTemplateRequest.SerializeToString,
-            vendor__service__pb2.CommandTemplate.FromString,
+            '/vendor.VendorService/GetCommandContext',
+            vendor__service__pb2.CommandContextRequest.SerializeToString,
+            vendor__service__pb2.CommandContext.FromString,
             options,
             channel_credentials,
             insecure,

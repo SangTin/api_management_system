@@ -1,6 +1,20 @@
 from typing import Dict, Any, Optional
 from .service import kafka_service
 from .topics import EventTypes, Topics
+import uuid
+from datetime import datetime
+
+def serialize_for_kafka(obj):
+    if isinstance(obj, dict):
+        return {k: serialize_for_kafka(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_for_kafka(item) for item in obj]
+    elif isinstance(obj, uuid.UUID):
+        return str(obj)
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
+    else:
+        return obj
 
 class EventPublisher:
     """
@@ -105,10 +119,11 @@ class EventPublisher:
                      key: Optional[str] = None, headers: Optional[Dict[str, str]] = None):
         """Generic event publisher"""
         print(f"Publishing event to topic {topic}: {event_type} with data: {data}")
+        serialized_data = serialize_for_kafka(data)
         kafka_service.send_event(
             topic=topic,
             event_type=event_type,
-            data=data,
+            data=serialized_data,
             key=key,
             headers=headers
         )
