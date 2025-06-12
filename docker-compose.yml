@@ -137,19 +137,6 @@ services:
       timeout: 5s
       retries: 5
 
-  mock-vendors:
-    build: ./mock_vendors
-    container_name: api-management-mock-vendors
-    ports:
-      - "9000:9000"
-    environment:
-      - FLASK_ENV=development
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
   user-service:
     build: 
       context: .
@@ -186,28 +173,6 @@ services:
       - .env
     environment:
       - DB_NAME=vendor_service_db
-    depends_on:
-      redis:
-        condition: service_healthy
-      api-gateway:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-
-  event-service:
-    build: 
-      context: .
-      dockerfile: ./event_service/Dockerfile
-      args:
-        SERVICE_NAME: event_service
-    container_name: api-management-event-service
-    volumes:
-      - ./event_service:/app
-      - ./shared:/app/shared
-    env_file:
-      - .env
-    environment:
-      - DB_NAME=event_service_db
     depends_on:
       redis:
         condition: service_healthy

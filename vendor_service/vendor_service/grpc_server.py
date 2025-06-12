@@ -11,7 +11,6 @@ from device.models import Device, DeviceCommand
 import shared.grpc.generated.vendor_service_pb2_grpc as vendor_service_pb2_grpc
 import shared.grpc.generated.vendor_service_pb2 as vendor_service_pb2
 from shared.grpc.services.utils import dict_to_struct
-from grpc_reflection.v1alpha import reflection
 
 class VendorServiceServicer(vendor_service_pb2_grpc.VendorServiceServicer):
     
@@ -156,7 +155,7 @@ class VendorServiceServicer(vendor_service_pb2_grpc.VendorServiceServicer):
             
             if not device_command or not device_command.command:
                 context.set_code(grpc.StatusCode.NOT_FOUND)
-                context.set_details("No active command template found for this device and command type.")
+                context.set_details(f"No active primary command found for device {device.id} with command type {request.command_type}.")
                 return vendor_service_pb2.CommandContext()
             
             command_template = device_command.command
@@ -265,12 +264,6 @@ class VendorServiceServicer(vendor_service_pb2_grpc.VendorServiceServicer):
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     vendor_service_pb2_grpc.add_VendorServiceServicer_to_server(VendorServiceServicer(), server)
-
-    SERVICE_NAMES = (
-        vendor_service_pb2.DESCRIPTOR.services_by_name['VendorService'].full_name,
-        reflection.SERVICE_NAME,
-    )
-    reflection.enable_server_reflection(SERVICE_NAMES, server)
 
     port = os.getenv("VENDOR_SERVICE_GRPC_PORT", "50051")
     server.add_insecure_port(f"[::]:{port}")

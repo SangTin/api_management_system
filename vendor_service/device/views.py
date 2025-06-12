@@ -61,3 +61,52 @@ class DeviceCommandViewSet(PermissionRequiredMixin, OrganizationFilterMixin, vie
             data[command_type].append(DeviceCommandSerializer(command).data)
 
         return Response(data, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'])
+    def make_primary(self, request, pk=None):
+        """Make this command the primary command for its type on the device"""
+        device_command = self.get_object()
+        device = device_command.device
+        command_type = device_command.command_type
+        
+        # Tìm command hiện tại đang là primary
+        current_primary = DeviceCommand.objects.filter(
+            device=device,
+            command_type=command_type,
+            is_primary=True,
+            is_active=True,
+            is_deleted=False
+        ).first()
+        
+        if current_primary and current_primary.id == device_command.id:
+            return Response({
+                'message': f'Command is already the primary command for {command_type}',
+                'device_command': DeviceCommandSerializer(device_command).data
+            })
+        
+        if current_primary:
+            current_primary.is_primary = False
+            current_primary.save()
+        
+        device_command.is_primary = True
+        device_command.save()
+        
+        from shared.kafka.publisher import EventPublisher
+        from shared.kafka.topics import Topics, EventTypes
+        
+        EventPublisher.publish_event(
+            Topics.DEVICE_STATUS,
+            EventTypes.DEVICE_COMMANDS_DISCONNECTED,
+            {
+                'device_id': str(device.id),
+                'command_type': command_type,
+                'new_primary_command_id': str(device_command.id),
+                'previous_primary_command_id': str(current_primary.id) if current_primary else None,
+                'user_id': str(request.user.id)
+            }
+        )
+        
+        return Response({
+            'message': f'Command set as primary for {command_type}',
+            'device_command': DeviceCommandSerializer(device_command).data
+        })

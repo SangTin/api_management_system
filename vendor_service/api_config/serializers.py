@@ -41,7 +41,6 @@ class APIConfigurationSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
         
-    @force_overwrite_auth(auth_field="auth_config")
     def create(self, validated_data):
         request = self.context['request']
         if not hasattr(request, 'user') or not hasattr(request.user, 'id'):
