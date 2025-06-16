@@ -77,6 +77,20 @@ class DeviceCommandAgent:
             
             print(f"Executing device command {command_type} on device {device_id}")
             
+            # Lấy full context từ gRPC
+            context = self.get_device_command_context(device_id, command_type)
+            
+            # Execute với device-specific context
+            start_time = time.time()
+            handler = get_protocol_handler("http")
+            
+            print(f"Using context: {context}")
+            api_config       = context["api_config"]
+            command_template = context["command_template"]
+            device_info      = context["device"]
+            device_command  = context["device_command"]
+            command_params = {**device_command.get('custom_params', {}), **command_params}
+            
             # Get and update CommandRequest status
             try:
                 command_request = CommandRequest.objects.get(id=command_id)
@@ -93,22 +107,15 @@ class DeviceCommandAgent:
                     status='executing'
                 )
             
-            # Lấy full context từ gRPC
-            context = self.get_device_command_context(device_id, command_type)
-            
-            # Execute với device-specific context
-            start_time = time.time()
-            handler = get_protocol_handler("http")
             result = handler.execute_command(
-                context.api_config,
-                context.command,
+                api_config,
+                command_template,
                 command_params,
-                device=context.device
+                device=device_info
             )
             execution_time = time.time() - start_time
             
             success = result.get('success', False)
-            print(f"Device command completed in {execution_time:.2f}s: {success}")
             
             # Update CommandRequest status
             command_request.status = 'completed' if success else 'failed'
@@ -118,7 +125,7 @@ class DeviceCommandAgent:
             CommandExecution.objects.create(
                 command_request=command_request,  # Sử dụng ForeignKey thay vì command_request_id
                 agent_id=self.agent_id,
-                api_config_id=str(context.api_config.id),
+                api_config_id=str(api_config.get('id', '')),
                 protocol="http",
                 result=result,
                 error_message=result.get('error', '') if not success else '',

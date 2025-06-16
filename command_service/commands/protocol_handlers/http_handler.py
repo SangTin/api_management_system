@@ -60,6 +60,7 @@ class HTTPHandler(BaseProtocolHandler):
                 url = urljoin(base_url, url_template)
             
             url = self.render_template(url, params)
+            print(f"Resolved URL: {url} with params: {params}")
             
             # Prepare headers
             headers = {}

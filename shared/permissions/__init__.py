@@ -12,6 +12,7 @@ from .decorators import (
 )
 
 from .mixins import (
+    BaseMixin,
     OrganizationFilterMixin,
     PermissionRequiredMixin,
 )
