@@ -52,6 +52,7 @@ class DeviceCommandViewSet(PermissionRequiredMixin, OrganizationFilterMixin, vie
     
     def list(self, request, *args, **kwargs):
         commands = self.filter_queryset(self.get_queryset())
+        print(f"Filtered commands: {commands.count()} found")
         data = {}
 
         for command in commands:
@@ -161,7 +162,9 @@ class DeviceCommandViewSet(PermissionRequiredMixin, OrganizationFilterMixin, vie
                 )
             
             # Get command parameters
+            params = device_command.params or {}
             command_params = request.data.get('params', {})
+            command_params = {**params, **command_params}
             
             # Validate required parameters
             required_params = device_command.command.required_params or []

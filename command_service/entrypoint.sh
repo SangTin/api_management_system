@@ -3,6 +3,9 @@ set -e
 
 python manage.py migrate
 
+python manage.py start_consumers &
+CONSUMERS_PID=$!
+
 python manage.py start_command_agents --test_agents=1 --device_agents=2 &
 AGENTS_PID=$!
 
