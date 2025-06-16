@@ -16,24 +16,29 @@ class DeviceCommandSerializer(serializers.ModelSerializer):
         queryset=Device.objects.all(),
         source='device',
         write_only=True,
-        allow_null=True,
-        required=False,
-        default=None
+        required=False
     )
     command = CommandTemplateSerializer(read_only=True)
     command_id = serializers.PrimaryKeyRelatedField(
         queryset=CommandTemplate.objects.all(),
         source='command',
         write_only=True,
-        allow_null=True,
-        required=False,
-        default=None
+        required=False
     )
     
     class Meta:
         model = DeviceCommand
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at')
+        
+    def to_internal_value(self, data):
+        internal_data = super().to_internal_value(data)
+        if self.instance:
+            for field in ['is_active', 'is_deleted', 'is_primary', 'device', 'command_type']:
+                if field not in internal_data and hasattr(self.instance, field):
+                    internal_data[field] = getattr(self.instance, field)
+
+        return internal_data
     
     def create(self, validated_data):
         request = self.context['request']
